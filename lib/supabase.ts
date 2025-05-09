@@ -24,7 +24,8 @@ export async function createClient() {
         async set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options } as ResponseCookie)
-          } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_error) {
             // Server Component でこのメソッドを使うと無視されるため例外を握り潰す
             // セッションの更新は middleware 等で行う前提
           }
@@ -34,7 +35,8 @@ export async function createClient() {
         async remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options } as ResponseCookie)
-          } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_error) {
             // Server Component では削除も無効なので例外を無視
           }
         },

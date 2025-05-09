@@ -1,16 +1,15 @@
 'use client'
 
 import { createBrowserClient } from '@supabase/ssr'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
+import { AuthError } from '@supabase/supabase-js'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-
+  
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -21,7 +20,7 @@ export default function SignUpPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -29,14 +28,18 @@ export default function SignUpPage() {
         },
       })
 
-      if (error) {
-        setError(error.message)
+      if (signUpError) {
+        setError(signUpError.message)
         return
       }
 
       setError('success')
-    } catch (error) {
-      setError('エラーが発生しました。もう一度お試しください。')
+    } catch (error: unknown) {
+      if (error instanceof AuthError) {
+        setError(error.message)
+      } else {
+        setError('エラーが発生しました。もう一度お試しください。')
+      }
     }
   }
 

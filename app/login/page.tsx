@@ -4,6 +4,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
+import { AuthError } from '@supabase/supabase-js'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -21,20 +22,24 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) {
-        setError(error.message)
+      if (signInError) {
+        setError(signInError.message)
         return
       }
 
       router.push('/dashboard')
       router.refresh()
-    } catch (error) {
-      setError('エラーが発生しました。もう一度お試しください。')
+    } catch (error: unknown) {
+      if (error instanceof AuthError) {
+        setError(error.message)
+      } else {
+        setError('エラーが発生しました。もう一度お試しください。')
+      }
     }
   }
 
@@ -81,7 +86,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center">このエラー文は状況によって変わる．(supabase.auth.signInWithPasswordから返されます)：{error}</div>
+            <div className="text-red-600 text-sm text-center">{error}</div>
           )}
 
           <div>
