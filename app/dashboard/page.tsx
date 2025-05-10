@@ -1,16 +1,13 @@
 'use client'
 
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserSupabaseClient } from '@/lib/supabase'
 import { useEffect, useState, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
 
-  const supabase = useRef(createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )).current
+  const supabase = useRef(createBrowserSupabaseClient()).current
 
   useEffect(() => {
     const getUser = async () => {

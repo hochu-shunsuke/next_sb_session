@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import { UserProvider } from "@/context/UserContext"
 
 const geist = Geist({
   subsets: ["latin"],
@@ -15,19 +16,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className={`${geist.variable} antialiased min-h-screen pt-16 bg-gray-50`}>
-        <Navbar />
-        <main className="w-full bg-white">
-          <div className="max-w-[1200px] mx-auto px-4">
-            {children}
-          </div>
-        </main>
+        <UserProvider>
+          <Navbar />
+          <main className="w-full bg-white">
+            <div className="max-w-[1200px] mx-auto px-4">
+              {children}
+            </div>
+          </main>
+        </UserProvider>
       </body>
     </html>
-  );
+  )
 }
+
