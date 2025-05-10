@@ -13,21 +13,15 @@ export default function Home() {
         <div className="space-x-4">
           <Link
             href="/signup"
-            className="inline-block px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-block px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-zinc-700"
           >
             新規登録
           </Link>
           <Link
             href="/login"
-            className="inline-block px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+            className="inline-block px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-zinc-700"
           >
             ログイン
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-block px-6 py-3 border border-transparent text-base font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
-          >
-            ダッシュボード
           </Link>
         </div>
       </div>
