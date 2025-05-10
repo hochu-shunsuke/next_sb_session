@@ -9,6 +9,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +19,7 @@ export default function SignUpPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+    setIsLoading(true)
 
     try {
       const { error: signUpError } = await supabase.auth.signUp({
@@ -40,6 +42,8 @@ export default function SignUpPage() {
       } else {
         setError('エラーが発生しました。もう一度お試しください。')
       }
+    } finally {
+    setIsLoading(false)
     }
   }
 
@@ -76,6 +80,11 @@ export default function SignUpPage() {
             アカウント作成
           </h2>
         </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center">
+            <div className="loader"></div> {/* ローディングアニメーション */}
+          </div>
+        ) : (
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -134,6 +143,7 @@ export default function SignUpPage() {
             </Link>
           </div>
         </form>
+        )}
       </div>
     </div>
   )
