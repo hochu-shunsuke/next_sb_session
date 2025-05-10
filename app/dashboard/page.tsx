@@ -1,13 +1,11 @@
 'use client'
 
 import { createBrowserClient } from '@supabase/ssr'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
-  const router = useRouter()
 
   const supabase = useRef(createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,12 +19,6 @@ export default function DashboardPage() {
     }
     getUser()
   }, [supabase.auth])
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
