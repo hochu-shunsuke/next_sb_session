@@ -33,7 +33,8 @@ export default function LoginPage() {
 
       router.push('/dashboard')
       router.refresh()
-    } catch (error: unknown) {
+    } catch (_fetchError: unknown) {
+      console.log('Fetch error during signin:', _fetchError); // _fetchError を使用
       setError('エラーが発生しました。ネットワーク接続を確認してください。')
     } finally {
       setIsLoading(false)

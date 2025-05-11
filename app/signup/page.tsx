@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -10,7 +9,6 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -39,7 +37,8 @@ export default function SignUpPage() {
         return
       }
       setIsSuccess(true)
-    } catch (error: unknown) {
+    } catch (_fetchError: unknown) {
+      console.log('Fetch error during signup:', _fetchError); // _fetchError を使用
       setError('エラーが発生しました。ネットワーク接続を確認してください。')
     } finally {
       setIsLoading(false)
