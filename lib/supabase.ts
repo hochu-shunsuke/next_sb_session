@@ -44,14 +44,3 @@ export async function createClient() {
     }
   )
 }
-
-/**
- * クライアント（ブラウザ）用の Supabase クライアントを生成
- * CSR 環境で使用
- */
-export function createBrowserSupabaseClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
