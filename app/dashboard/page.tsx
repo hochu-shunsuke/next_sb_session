@@ -1,24 +1,9 @@
-'use client'
+import { createClient } from '@/lib/supabase';
 
-import { createBrowserClient } from '@supabase/ssr'
-import { useEffect, useState, useRef } from 'react'
-import type { User } from '@supabase/supabase-js'
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null)
-
-  const supabase = useRef(createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )).current
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-    }
-    getUser()
-  }, [supabase.auth])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,11 +14,14 @@ export default function DashboardPage() {
             <div style={{ color: '#000000' }}>
               <p>メールアドレス: {user.email}</p>
               <p>ユーザーID: {user.id}</p>
-              <p>最終ログイン: {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('ja-JP') : '未ログイン'}</p>
+              <p>最終ログイン: {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('ja-JP') : 'N/A'}</p>
             </div>
+          )}
+          {!user && (
+            <p style={{ color: '#000000' }}>ユーザー情報を取得できませんでした。</p>
           )}
         </div>
       </main>
     </div>
-  )
+  );
 }
