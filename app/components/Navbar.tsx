@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import type { User } from '@supabase/supabase-js'
 
 export default function Navbar({ user }: { user: User | null }) {
@@ -24,7 +25,8 @@ export default function Navbar({ user }: { user: User | null }) {
     <nav className="bg-white fixed w-full z-20 top-0 start-0 border-b border-gray-200">
       <div className="max-w-[1200px] mx-auto w-full flex flex-wrap items-center justify-between p-4">
         <Link href="/" className="flex items-center space-x-3">
-          <img src="/site/orcareer.webp" alt="オルキャリ" className="h-8" />
+          <Image src="/site/orcareer.webp" alt="オルキャリ" width={120} height={32} className="object-contain"/>
+
         </Link>
         <button
           onClick={() => setIsOpen(!isOpen)}

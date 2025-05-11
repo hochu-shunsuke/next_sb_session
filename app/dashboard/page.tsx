@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase';
-import { redirect } from 'next/navigation';
-import type { User } from '@supabase/supabase-js'
 
 export default async function DashboardPage() {
   const supabase = await createClient();
