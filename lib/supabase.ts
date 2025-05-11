@@ -1,4 +1,4 @@
-import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 import { type CookieOptions } from '@supabase/ssr'
