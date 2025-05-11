@@ -51,7 +51,7 @@ export default function LoginPage() {
         </div>
         {isLoading ? (
           <div className="flex justify-center items-center">
-            <p>読み込み中です</p>
+            <p className="text-black">読み込み中です</p>
             <div className="loader"></div>
           </div>
         ) : (
