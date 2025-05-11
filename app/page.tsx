@@ -1,14 +1,13 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="max-w-2xl w-full text-center space-y-8">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Next.js + Supabase認証デモ
-        </h1>
+        <Image src="/site/orcareer.webp" alt="オルキャリ" width={839} height={269} className="object-contain"/>
         <p className="text-xl text-gray-600">
-          シンプルな認証機能を備えたアプリケーションです
+          東海地方に特化した新卒就活サービス
         </p>
         <div className="space-x-4">
           <Link
