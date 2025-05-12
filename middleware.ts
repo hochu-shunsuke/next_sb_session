@@ -43,14 +43,17 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 現在のセッションを取得（ログイン状態の確認）
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  try {
+    // 現在のセッションを取得（ログイン状態の確認）
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  // 認証が必要なパスにアクセスしていて、ログインしていない場合は /login にリダイレクト
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !session) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    // 認証が必要なパスにアクセスしていて、ログインしていない場合は /login にリダイレクト
+    if (request.nextUrl.pathname.startsWith('/dashboard') && !session) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  } catch (error) {
   }
 
   // 問題がなければリクエストをそのまま通す

@@ -19,9 +19,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user ?? null;
+  let user = null;
+
+  try {
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      user = session.user;
+    }
+  } catch (error) {
+    console.error('RootLayout - Error getting session:', error);
+  }
 
   return (
     <html lang="ja" suppressHydrationWarning>
