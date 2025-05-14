@@ -62,6 +62,7 @@ export default function LoginPage() {
 
     } catch (_fetchError: unknown) {
       // fetch自体が失敗した場合 (ネットワークエラーなど)
+      console.error('Fetch error during signin:', _fetchError); // エラーをコンソールに出力
       setError('ログイン処理中にエラーが発生しました。ネットワーク接続を確認してください。');
     } finally {
       setIsLoading(false); // ローディング状態を終了

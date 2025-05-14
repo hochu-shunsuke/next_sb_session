@@ -47,6 +47,7 @@ export default function Navbar({ user }: { user: User | null }) {
       router.refresh();
     } catch (error) {
       // fetch自体が失敗した場合 (ネットワークエラーなど)
+      console.error('Logout fetch error:', error); // エラーをコンソールに出力
       alert('ログアウト中にエラーが発生しました。ネットワーク接続を確認してください。');
     }
   }

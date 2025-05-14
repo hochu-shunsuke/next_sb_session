@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { FormEvent, useState, useEffect } from 'react' // useEffect をインポート
-import { getCookie } from 'cookies-next'; // cookies-next をインポート
+import { FormEvent, useState } from 'react' // useEffect を削除
+import { getCookie } from 'cookies-next';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -10,15 +10,16 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined); // CSRFトークン用のstate
+  // CSRFトークン用のstateを削除
+  // const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
 
-  // コンポーネントマウント時にCookieからCSRFトークンを取得
-  useEffect(() => {
-    const token = getCookie('csrf-token');
-    if (typeof token === 'string') {
-      setCsrfToken(token);
-    }
-  }, []);
+  // useEffect を削除
+  // useEffect(() => {
+  //   const token = getCookie('csrf-token');
+  //   if (typeof token === 'string') {
+  //     setCsrfToken(token);
+  //   }
+  // }, []);
 
   // サインアップ処理
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -27,8 +28,11 @@ export default function SignUpPage() {
     setIsLoading(true) // ローディング状態を開始
     setIsSuccess(false)  // 成功状態をリセット
 
+    // CookieからCSRFトークンを直接取得
+    const currentCsrfToken = getCookie('csrf-token');
+
     // CSRFトークンが取得できているか確認
-    if (!csrfToken) {
+    if (!currentCsrfToken || typeof currentCsrfToken !== 'string') {
       setError('CSRFトークンが見つかりません。ページをリロードして再度お試しください。');
       setIsLoading(false);
       return;
@@ -40,7 +44,7 @@ export default function SignUpPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken, // CSRFトークンをヘッダーに含める
+          'X-CSRF-Token': currentCsrfToken, // 取得したCSRFトークンをヘッダーに含める
         },
         body: JSON.stringify({
           email,
@@ -49,10 +53,8 @@ export default function SignUpPage() {
             // メール認証後のリダイレクト先をクライアントのオリジンに設定
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
-          // ミドルウェアはヘッダーの X-CSRF-Token を優先的にチェックするため、
-          // ボディに csrf_token を含める必要は通常ありません。
-          // もしミドルウェアがボディもチェックするように拡張されている場合は、
-          // csrf_token: csrfToken, のように追加することも可能です。
+          // ミドルウェアがヘッダーとボディの両方をチェックする場合があるため、ボディにもCSRFトークンを含めることを検討
+          // csrf_token: currentCsrfToken, // 必要に応じて追加
         }),
       });
 
@@ -66,8 +68,6 @@ export default function SignUpPage() {
 
       // サインアップ成功（メール認証待ちの場合も含む）
       setIsSuccess(true);
-      // responseData.message があれば表示することも検討
-      // alert(responseData.message || 'アカウント作成処理を受け付けました。');
 
     } catch (_fetchError: unknown) {
       // fetch自体が失敗した場合 (ネットワークエラーなど)

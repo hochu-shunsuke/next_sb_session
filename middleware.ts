@@ -95,35 +95,55 @@ export async function middleware(request: NextRequest) {
 
   try {
     // --- 認証チェックとリダイレクト ---
-    // Supabaseのセッション情報を取得
+    // Supabaseのユーザー情報を取得 (getSession() から getUser() に変更)
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user }, // session から user に変更
+    } = await supabase.auth.getUser() // getSession() から getUser() に変更
 
-    // 保護されたルートへのアクセス制御
-    // '/dashboard' で始まるパスにアクセスしようとしていて、かつセッションがない（未ログイン）場合
-    if (request.nextUrl.pathname.startsWith('/dashboard') && !session) {
-      // ログインページへリダイレクト
-      return NextResponse.redirect(new URL('/login', request.url))
+    // 現在のパスを取得
+    const { pathname } = request.nextUrl
+
+    // ログイン状態とアクセスしようとしているパスに基づいてリダイレクト処理
+    if (user) {
+      // ログイン済みユーザーがアクセスしようとしているパスが /login または /signup の場合
+      if (pathname === '/login' || pathname === '/signup') {
+        // ダッシュボードページにリダイレクト
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } else {
+      // 未ログインユーザーがアクセスしようとしているパスが保護されたルートの場合
+      // (例: /dashboard, /settings など、'/', '/login', '/signup', '/auth/callback' 以外)
+      if (!['/', '/login', '/signup', '/auth/callback'].includes(pathname) && !pathname.startsWith('/api')) {
+        // ログインページにリダイレクト (リダイレクト後の戻り先として現在のパスを保持)
+        return NextResponse.redirect(new URL(`/login?redirect_to=${pathname}`, request.url))
+      }
     }
     // --- 認証チェックとリダイレクトここまで ---
 
-  } catch (error) {
-    // Supabase関連の処理でエラーが発生した場合のフォールバック
-    // CSRFトークンの検証で問題があった場合は、既にレスポンスが返されているため、ここは実行されない
-    console.error("Error in Supabase session handling:", error);
-    // エラーが発生しても、基本的なレスポンス処理は継続させる
-    // (例えば、CSRFクッキーのセットは上の処理で行われているため、それを返す)
+  } catch (e) {
+    // エラーが発生した場合は、エラーメッセージを含むレスポンスを返す
+    // (Supabaseクライアントの初期化に失敗した場合など)
+    return NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
   }
 
-  // 全ての処理が完了したら、最終的なレスポンスを返す
+  // すべての処理が完了したら、最終的なレスポンスを返す
   return response
 }
 
-// ミドルウェアが適用されるパスのパターン
+// configオブジェクトでミドルウェアが適用されるパスを指定
 export const config = {
   matcher: [
-    // APIルート、Next.jsの内部ルート、静的ファイル（画像など）を除外する正規表現
-    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - site (public/site files)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|site).*)',
   ],
 }
