@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FormEvent, useState, useEffect } from 'react'
+import { FormEvent, useState} from 'react'
 import { getCookie } from 'cookies-next';
 
 export default function LoginPage() {
