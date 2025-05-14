@@ -3,6 +3,19 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { generateCsrfToken } from '@/lib/csrf';
 
 export async function middleware(request: NextRequest) {
+  // --- CORS Preflight Request Handling ---
+  if (request.method === 'OPTIONS') {
+    // 適切なCORSヘッダーを設定して200 OKで応答
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': request.headers.get('Origin') || '*', // リクエスト元のオリジンを許可、または '*' ですべて許可
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-CSRF-Token, Authorization', // アプリケーションで使用するヘッダーを列挙
+      'Access-Control-Max-Age': '86400', // プリフライトレスポンスをキャッシュする時間 (秒)
+    };
+    return new NextResponse(null, { status: 204, headers: corsHeaders }); // 204 No Content も一般的
+  }
+  // --- CORS Preflight Request Handling ここまで ---
+
   // リクエストヘッダーを保持したレスポンスオブジェクトを初期化
   const response = NextResponse.next({
     request: { headers: request.headers },
