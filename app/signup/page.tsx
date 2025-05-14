@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { FormEvent, useState } from 'react'
+import { FormEvent, useState, useEffect } from 'react' // useEffect をインポート
+import { getCookie } from 'cookies-next'; // cookies-next をインポート
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -9,39 +10,71 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined); // CSRFトークン用のstate
 
+  // コンポーネントマウント時にCookieからCSRFトークンを取得
+  useEffect(() => {
+    const token = getCookie('csrf-token');
+    if (typeof token === 'string') {
+      setCsrfToken(token);
+    }
+  }, []);
+
+  // サインアップ処理
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
-    setIsSuccess(false)
+    e.preventDefault() // フォームのデフォルト送信をキャンセル
+    setError(null)     // エラーメッセージをリセット
+    setIsLoading(true) // ローディング状態を開始
+    setIsSuccess(false)  // 成功状態をリセット
+
+    // CSRFトークンが取得できているか確認
+    if (!csrfToken) {
+      setError('CSRFトークンが見つかりません。ページをリロードして再度お試しください。');
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      // バックエンドのサインアップAPIルートを呼び出し
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken, // CSRFトークンをヘッダーに含める
         },
         body: JSON.stringify({
           email,
           password,
           options: {
+            // メール認証後のリダイレクト先をクライアントのオリジンに設定
             emailRedirectTo: `${window.location.origin}/auth/callback`,
-          }
+          },
+          // ミドルウェアはヘッダーの X-CSRF-Token を優先的にチェックするため、
+          // ボディに csrf_token を含める必要は通常ありません。
+          // もしミドルウェアがボディもチェックするように拡張されている場合は、
+          // csrf_token: csrfToken, のように追加することも可能です。
         }),
-      })
+      });
+
+      const responseData = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json()
-        setError(errorData.error || 'アカウント作成に失敗しました。')
-        return
+        // APIからのエラーレスポンスを処理
+        setError(responseData.error || 'アカウント作成に失敗しました。');
+        return;
       }
-      setIsSuccess(true)
+
+      // サインアップ成功（メール認証待ちの場合も含む）
+      setIsSuccess(true);
+      // responseData.message があれば表示することも検討
+      // alert(responseData.message || 'アカウント作成処理を受け付けました。');
+
     } catch (_fetchError: unknown) {
-      console.log('Fetch error during signup:', _fetchError); // _fetchError を使用
-      setError('エラーが発生しました。ネットワーク接続を確認してください。')
+      // fetch自体が失敗した場合 (ネットワークエラーなど)
+      console.error('Fetch error during signup:', _fetchError);
+      setError('サインアップ処理中にエラーが発生しました。ネットワーク接続を確認してください。');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false); // ローディング状態を終了
     }
   }
 

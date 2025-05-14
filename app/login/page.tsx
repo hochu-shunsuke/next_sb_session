@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FormEvent, useState } from 'react'
+import { FormEvent, useState, useEffect } from 'react'
+import { getCookie } from 'cookies-next';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -10,19 +11,48 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  // CSRFトークンをstateで管理する必要がなくなるため、以下の行は削除またはコメントアウトしても良い
+  // const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
+
+  // useEffectフックもCSRFトークンのstate管理が不要になれば削除またはコメントアウト
+  // useEffect(() => {
+  //   const tokenFromCookie = getCookie('csrf-token');
+  //   console.log('useEffect: csrf-token from cookie:', tokenFromCookie);
+  //   if (typeof tokenFromCookie === 'string') {
+  //     setCsrfToken(tokenFromCookie);
+  //     console.log('useEffect: csrfToken state set to:', tokenFromCookie);
+  //   } else {
+  //     console.warn('useEffect: csrf-token not found in cookies or is not a string.');
+  //   }
+  // }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
 
+    const currentCsrfToken = getCookie('csrf-token'); // handleSubmit内で直接Cookieから取得
+    console.log('handleSubmit: current csrfToken from cookie:', currentCsrfToken); // デバッグ用ログ
+
+    if (!currentCsrfToken || typeof currentCsrfToken !== 'string') { // string型であることも確認
+      setError('CSRFトークンが見つかりません。ページをリロードしてください。');
+      console.error('handleSubmit: CSRF token is missing or not a string!', currentCsrfToken); // デバッグ用ログに取得した値も表示
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': currentCsrfToken, // 直接取得したトークンを使用
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          csrf_token: currentCsrfToken, // CSRFトークンをボディにも追加
+        }),
       })
 
       if (!response.ok) {
