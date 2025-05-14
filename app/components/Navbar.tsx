@@ -5,49 +5,48 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { User } from '@supabase/supabase-js'
-import { getCookie } from 'cookies-next'; // cookies-next をインポート
+import { getCookie } from 'cookies-next';
 
+// ナビゲーションバーコンポーネント
 export default function Navbar({ user }: { user: User | null }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const isLoggedIn = !!user;
+  const [isOpen, setIsOpen] = useState(false) // モバイルメニューの開閉状態
+  const isLoggedIn = !!user; // ユーザーオブジェクトが存在すればログイン状態とみなす
   const router = useRouter()
 
-
+  // ログアウト処理
   const handleLogout = async () => {
-    const csrfToken = getCookie('csrf-token'); // CSRFトークンを取得
+    // CookieからCSRFトークンを直接取得
+    const csrfToken = getCookie('csrf-token');
 
+    // CSRFトークンが存在し、かつ文字列型であることを確認
     if (!csrfToken || typeof csrfToken !== 'string') {
-      console.error('CSRF token not found or is not a string for logout');
-      // ここでユーザーにエラーを通知するか、何らかのフォールバック処理を検討
       alert('ログアウト処理に失敗しました。ページをリロードして再度お試しください。');
       return;
     }
 
     try {
+      // バックエンドのサインアウトAPIルートを呼び出し
       const response = await fetch('/api/auth/signout', {
         method: 'POST',
         headers: {
-          // Content-Typeはボディがない場合は不要なこともありますが、
-          // ミドルウェアがJSONボディを期待する可能性があるため、
-          // CSRFトークンのみのJSONボディを送る場合は指定します。
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
+          'Content-Type': 'application/json', // ボディがJSON形式であることを指定
+          'X-CSRF-Token': csrfToken,         // CSRFトークンをヘッダーに含める
         },
-        // APIがボディを期待していなくても、ミドルウェアがチェックするため送信
+        // ミドルウェアがヘッダーとボディの両方をチェックする場合があるため、ボディにもCSRFトークンを含める
         body: JSON.stringify({ csrf_token: csrfToken }),
       });
 
       if (!response.ok) {
-        // サーバーからのエラーレスポンスを処理
-        const errorData = await response.json().catch(() => ({})) // JSONパース失敗時のフォールバック
-        console.error('Logout failed with status:', response.status, errorData);
+        // APIからのエラーレスポンスを処理
+        const errorData = await response.json().catch(() => ({})); // JSONパース失敗時のフォールバック
         alert(`ログアウトに失敗しました: ${errorData.error || response.statusText}`);
         return;
       }
 
+      // ログアウト成功後、ページをリフレッシュしてUIを更新
       router.refresh();
     } catch (error) {
-      console.error('Logout fetch error:', error);
+      // fetch自体が失敗した場合 (ネットワークエラーなど)
       alert('ログアウト中にエラーが発生しました。ネットワーク接続を確認してください。');
     }
   }

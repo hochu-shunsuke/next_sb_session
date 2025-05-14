@@ -2,72 +2,69 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FormEvent, useState} from 'react'
+import { FormEvent, useState } from 'react' // useEffectは不要になったため削除
 import { getCookie } from 'cookies-next';
 
+// ログインページコンポーネント
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  // CSRFトークンをstateで管理する必要がなくなるため、以下の行は削除またはコメントアウトしても良い
+  // CSRFトークンはhandleSubmit内で直接Cookieから取得するため、state管理は不要
   // const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
+  // useEffectも不要
 
-  // useEffectフックもCSRFトークンのstate管理が不要になれば削除またはコメントアウト
-  // useEffect(() => {
-  //   const tokenFromCookie = getCookie('csrf-token');
-  //   console.log('useEffect: csrf-token from cookie:', tokenFromCookie);
-  //   if (typeof tokenFromCookie === 'string') {
-  //     setCsrfToken(tokenFromCookie);
-  //     console.log('useEffect: csrfToken state set to:', tokenFromCookie);
-  //   } else {
-  //     console.warn('useEffect: csrf-token not found in cookies or is not a string.');
-  //   }
-  // }, []);
-
+  // ログイン処理
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault() // フォームのデフォルト送信をキャンセル
+    setError(null)     // エラーメッセージをリセット
+    setIsLoading(true) // ローディング状態を開始
 
-    const currentCsrfToken = getCookie('csrf-token'); // handleSubmit内で直接Cookieから取得
-    console.log('handleSubmit: current csrfToken from cookie:', currentCsrfToken); // デバッグ用ログ
+    // CookieからCSRFトークンを直接取得
+    const currentCsrfToken = getCookie('csrf-token');
 
-    if (!currentCsrfToken || typeof currentCsrfToken !== 'string') { // string型であることも確認
-      setError('CSRFトークンが見つかりません。ページをリロードしてください。');
-      console.error('handleSubmit: CSRF token is missing or not a string!', currentCsrfToken); // デバッグ用ログに取得した値も表示
+    // CSRFトークンが存在し、かつ文字列型であることを確認
+    if (!currentCsrfToken || typeof currentCsrfToken !== 'string') {
+      setError('ログイン処理に失敗しました。ページをリロードして再度お試しください。');
       setIsLoading(false);
       return;
     }
 
     try {
+      // バックエンドのサインインAPIルートを呼び出し
       const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': currentCsrfToken, // 直接取得したトークンを使用
+          'X-CSRF-Token': currentCsrfToken, // CSRFトークンをヘッダーに含める
         },
         body: JSON.stringify({
           email,
           password,
-          csrf_token: currentCsrfToken, // CSRFトークンをボディにも追加
+          // ミドルウェアがヘッダーとボディの両方をチェックする場合があるため、ボディにもCSRFトークンを含める
+          csrf_token: currentCsrfToken,
         }),
-      })
+      });
+
+      const responseData = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json()
-        setError(errorData.error || 'ログインに失敗しました。')
-        return
+        // APIからのエラーレスポンスを処理
+        setError(responseData.error || 'メールアドレスまたはパスワードが正しくありません。');
+        return;
       }
 
-      router.push('/dashboard')
-      router.refresh()
+      // ログイン成功後、ダッシュボードページにリダイレクト
+      router.push('/dashboard');
+      router.refresh(); // サーバーコンポーネントの状態を更新 (例: Navbarのユーザー情報)
+
     } catch (_fetchError: unknown) {
-      console.log('Fetch error during signin:', _fetchError); // _fetchError を使用
-      setError('エラーが発生しました。ネットワーク接続を確認してください。')
+      // fetch自体が失敗した場合 (ネットワークエラーなど)
+      setError('ログイン処理中にエラーが発生しました。ネットワーク接続を確認してください。');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false); // ローディング状態を終了
     }
   }
 
